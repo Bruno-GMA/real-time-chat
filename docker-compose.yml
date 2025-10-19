@@ -1,0 +1,58 @@
+version: "3.8"
+
+services:
+  # --- Banco de dados PostgreSQL ---
+  postgres:
+    image: postgres:16
+    container_name: chat_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: chatdb
+    ports:
+      - "15432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - chat-network
+
+  # --- Interface gráfica pgAdmin ---
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: chat_pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8045:80"
+    depends_on:
+      - postgres
+    networks:
+      - chat-network
+
+  # --- Aplicação Node.js com Prisma e Socket.IO ---
+  app:
+    build: .
+    container_name: socket
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      - chat-network
+    command: sh -c "npx prisma migrate deploy && npm start"
+
+volumes:
+  pgdata:
+
+networks:
+  chat-network:
+    driver: bridge
