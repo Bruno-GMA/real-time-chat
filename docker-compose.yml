@@ -50,6 +50,18 @@ services:
       - chat-network
     command: sh -c "npx prisma migrate deploy && npm start"
 
+  prisma-studio:
+    build: .
+    ports:
+      - "5555:5555"
+    env_file:
+      - .env
+    networks:
+      - chat-network
+    depends_on:
+      - postgres
+    command: npx prisma studio
+
 volumes:
   pgdata:
 

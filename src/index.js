@@ -7,7 +7,9 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const app = express();
 const server = createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+  connectionStateRecovery: {}
+});
 
 app.get('/', (req, res) => {
   res.sendFile(join(__dirname, 'index.html'));
@@ -16,7 +18,7 @@ app.get('/', (req, res) => {
 io.on('connection', async (socket) => {
   console.log('a user connected');
 
-  // Envia mensagens antigas
+  // Envia mensagens antigas guardadas no banco de dados
   const messages = await prisma.message.findMany({
     orderBy: { createdAt: 'asc' },
   });
