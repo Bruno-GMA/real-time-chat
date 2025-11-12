@@ -3,6 +3,7 @@ const { createServer } = require('node:http');
 const { join } = require('node:path');
 const { Server } = require('socket.io');
 const { PrismaClient } = require('@prisma/client');
+const { encrypt, decrypt } = require('./crypto');
 
 const prisma = new PrismaClient();
 const app = express();
@@ -18,15 +19,19 @@ app.get('/', (req, res) => {
 io.on('connection', async (socket) => {
   console.log('a user connected');
 
-  // Envia mensagens antigas guardadas no banco de dados
+  // Envia mensagens antigas guardadas no banco de dados (descriptografadas)
   const messages = await prisma.message.findMany({
     orderBy: { createdAt: 'asc' },
   });
-  messages.forEach((msg) => socket.emit('chat message', msg.content));
+  messages.forEach((msg) => {
+    const decryptedContent = decrypt(msg.content);
+    socket.emit('chat message', decryptedContent);
+  });
 
   // Recebe novas mensagens
   socket.on('chat message', async (msg) => {
-    await prisma.message.create({ data: { content: msg } });
+    const encryptedMsg = encrypt(msg);
+    await prisma.message.create({ data: { content: encryptedMsg } });
     io.emit('chat message', msg);
   });
 
