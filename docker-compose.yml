@@ -1,5 +1,4 @@
 version: "3.8"
-
 services:
   # --- Banco de dados PostgreSQL ---
   postgres:
@@ -14,6 +13,11 @@ services:
       - "15432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - chat-network
 
@@ -23,8 +27,8 @@ services:
     container_name: chat_pgadmin
     restart: always
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_DEFAULT_EMAIL: "admin@admin.com"
+      PGADMIN_DEFAULT_PASSWORD: "admin"
     ports:
       - "8045:80"
     depends_on:
@@ -48,10 +52,13 @@ services:
       - /usr/src/app/node_modules
     networks:
       - chat-network
-    command: sh -c "npx prisma migrate deploy && npm start"
+    command: sh -c "npx prisma generate && npx prisma migrate deploy && npm start"
 
   prisma-studio:
     build: .
+    image: chat-prisma-studio
+    container_name: chat_prisma_studio
+    restart: "no"
     ports:
       - "5555:5555"
     env_file:
