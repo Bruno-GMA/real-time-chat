@@ -25,7 +25,7 @@ function decrypt(encryptedData) {
   const decipher = crypto.createDecipheriv(ALGORITHM, ENCRYPTION_KEY, iv);
   decipher.setAuthTag(authTag);
 
-  let decrypted = (decipher.updateencrypted, 'hex', 'utf8');
+  let decrypted = decipher.update(encrypted, 'hex', 'utf8');
   decrypted += decipher.final('utf8');
 
   return decrypted;

@@ -52,7 +52,7 @@ services:
       - /usr/src/app/node_modules
     networks:
       - chat-network
-    command: sh -c "npx prisma generate && npx prisma migrate deploy && npm start"
+    command: sh -c "npx prisma migrate deploy && npm start"
 
   prisma-studio:
     build: .
